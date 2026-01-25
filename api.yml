@@ -1,0 +1,277 @@
+openapi: '3.0.3'
+info:
+  title: ToDo app API
+  version: '1.0'
+servers:
+  - url: http://localhost/v1
+components:
+  schemas:
+    category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    task:
+      type: object
+      properties:
+        id:
+          type: integer
+        idCategory:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        createdBy:
+          type: integer
+        assignees:
+          type: array
+          items:
+            type: integer
+    user:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+    login:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+paths:
+  /category:
+    get:
+      description: Lists all available categories
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/category" 
+    post:
+      description: Adds new category
+      parameters:
+      - name: name
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+        "403":
+          description: Category with that name already exists
+    put:
+      description: Changes the name of category with given id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/category"
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Category with that name already exists
+        "404":
+          description: Category with that id does not exist
+    delete:
+      description: Deletes category with given id
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Category with that id does not exist
+  /task:
+    get:
+      description: Lists all task or limited to one category
+      parameters:
+      - name: catId
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/task"
+        "404":
+          description: Category with specified id does not exist
+    post:
+      description: Creates new task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/task"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+    put:
+      description: Modifies task with specified id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/task"
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Task with specified id not found or invalid category id
+  /task/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    get:
+      description: Gets task with specified id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/task"
+        "404":
+          description: Task with that id does not exist
+    put:
+      description: Modifies task with specified id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                assignees:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Task with specified id not found or invalid assingee id
+    delete:
+      description: Deletes task with specified id
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Task with specified id does not exist
+  /user:
+    get:
+      description: Lists all users
+      responses:
+        "200":
+          description:  OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/user"
+    post:
+      description: Creates new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/login"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+        "403":
+          description: Invalid username
+  /user/{username}:
+    parameters:
+    - name: username
+      in: path
+      required: true
+      schema:
+        type: string
+    put:
+      parameters:
+      - name: password
+        in: query
+        required: true
+        schema:
+          type: string
+          format: password
+      description: Changes user password
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Invalid username
+    delete:
+      description: Deletes user
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Invalid username
+  /login:
+    put:
+      description: Authenticates user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        "403":
+          description: Invalid password
+        "404":
+          description: Invalid username
+  /logout:
+    put:
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      description: Logs user out
+      responses:
+        "200":
+          description: OK
+            
