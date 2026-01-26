@@ -3,7 +3,7 @@ info:
   title: ToDo app API
   version: '1.0'
 servers:
-  - url: http://localhost/v1
+  - url: http://localhost:5041
 components:
   schemas:
     category:
@@ -308,4 +308,13 @@ paths:
           description: Unathorized action
         "404":
           description: Invalid username
-            
+  /login:
+    get:
+      security:
+        - basicAuth: []
+      description: Logs in user
+      responses:
+        "200":
+          description: OK
+        "401":  
+          description: Authentication invalid
