@@ -14,10 +14,10 @@ public class AuthService
 
     public async Task<bool> LoginAsync(string username, string password)
     {
-        var authHeader = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+        var authHeader = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
 
-        var response = await _client.GetAsync("/v1/user/username");
+        var response = await _client.GetAsync("/login");
 
         return response.IsSuccessStatusCode;
     }
