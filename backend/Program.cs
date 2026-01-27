@@ -42,43 +42,34 @@ public class Program
             return Results.Ok($"Deleted category with id={id}");    
         }).RequireAuthorization();
 
-        app.MapGet("/task", (int? catId) =>
+        app.MapGet("/task", (int? catId, SqliteDb db) =>
         {
-            TaskModel[] tasks;
-            if (catId == null)
-            {
-                tasks = [
-                    new TaskModel() { Id = 1, Assignees = [1, 2], IdCategory = 1, CreatedBy = 1, Description = "Desc", Title = "tytuł" },
-                    new TaskModel() { Id = 2, Assignees = [1, 2], IdCategory = 2, CreatedBy = 1, Description = "Desc", Title = "tytuł" },
-                    new TaskModel() { Id = 3, Assignees = [1, 2], IdCategory = 3, CreatedBy = 1, Description = "Desc", Title = "tytuł" }
-                ];
+            IEnumerable<TaskModel> tasks;
 
-            }
+            if (catId == null)
+                tasks = db.Query<TaskModel>("SELECT Id, IdCategory, Title, Description, CreatedBy FROM tasks");
             else
-            {
-                tasks = [
-                    new TaskModel() { Id = 1, Assignees = [1, 2], IdCategory = (int)catId, CreatedBy = 1, Description = "Desc", Title = "tytuł" },
-                    new TaskModel() { Id = 2, Assignees = [1, 2], IdCategory = (int)catId, CreatedBy = 1, Description = "Desc", Title = "tytuł" },
-                    new TaskModel() { Id = 3, Assignees = [1, 2], IdCategory = (int)catId, CreatedBy = 1, Description = "Desc", Title = "tytuł" }
-                ];
-            }
+                tasks = db.Query<TaskModel>("SELECT Id, IdCategory, Title, Description, CreatedBy FROM tasks WHERE IdCategory = @catId", new { catId = catId });
             return tasks;
         }).RequireAuthorization();
-        app.MapPost("/task", (TaskModel task) =>
+        app.MapPost("/task", (TaskModel task, SqliteDb db) =>
         {
-            return 1;
+            db.Execute("INSERT INTO tasks(IdCategory, Title, Description, CreatedBy) VALUES (@IdCategory, @Title, @Description, @CreatedBy)", task);
+            return Results.Ok();
         }).RequireAuthorization();
-        app.MapPut("/task", (TaskModel task) =>
+        app.MapPut("/task", (TaskModel task, SqliteDb db) =>
         {
+            db.Execute("UPDATE tasks SET IdCategory = @IdCategory, Title = @Title, Description = @Description, CreatedBy = @CreatedBy WHERE Id=@Id", task);
             return Results.Ok();
         }).RequireAuthorization();
 
-        app.MapGet("/task/{id}", (int id) =>
+        app.MapGet("/task/{id}", (int id, SqliteDb db) =>
         {
-            return new TaskModel() { Id = id, Assignees = [1, 2], IdCategory = 1, CreatedBy = 1, Description = "Desc", Title = "tytuł" };
+            return db.QueryFirst<TaskModel>("SELECT Id, IdCategory, Title, Description, CreatedBy FROM tasks WHERE Id = @id", new { id = id });
         }).RequireAuthorization();
-        app.MapDelete("/task/{id}", (int id) =>
+        app.MapDelete("/task/{id}", (int id, SqliteDb db) =>
         {
+            db.Execute("DELETE FROM tasks WHERE Id=@id", new { id = id });
             return Results.Ok();
         }).RequireAuthorization();
 

@@ -26,10 +26,6 @@ components:
           type: string
         createdBy:
           type: integer
-        assignees:
-          type: array
-          items:
-            type: integer
     user:
       type: object
       properties:
