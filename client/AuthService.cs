@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Blazored.SessionStorage;
@@ -39,8 +38,7 @@ public class AuthService
 
     public async Task<bool> RegisterAsync(string username, string password)
     {
-        var passwordHash = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-        string json = JsonSerializer.Serialize(new { username = username, password = passwordHash });
+        string json = JsonSerializer.Serialize(new { username = username, password = password });
         StringContent query = new(json, Encoding.UTF8, "application/json");
 
         var response = await _client.PostAsync($"/user", query);
