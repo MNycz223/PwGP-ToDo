@@ -1,0 +1,27 @@
+@page "/app"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+
+<h1>ToDo App</h1>
+<button @onclick="Logout" type="button">Wyloguj</button>
+
+@code
+{
+    private bool isLogged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLogged = await AuthService.IsLoggedAsync();
+
+        if (!isLogged)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/");
+    }
+}

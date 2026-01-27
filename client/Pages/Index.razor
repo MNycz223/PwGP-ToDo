@@ -2,24 +2,55 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
-<h3>Logowanie</h3>
+@if (isRegistered)
+{
+    <h3>Zaloguj</h3>
 
-<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator></DataAnnotationsValidator>
-    <ValidationSummary></ValidationSummary>
+    <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
 
-    <div>
-        <label>Username:</label>
-        <InputText @bind-Value="loginModel.Username"></InputText>
-    </div>
+        <div>
+            <label>Nazwa użytkownika:</label>
+            <InputText @bind-Value="loginModel.Username"></InputText>
+        </div>
 
-    <div>
-        <label>Password:</label>
-        <InputText @bind-Value="loginModel.Password" type="password"></InputText>
-    </div>
-    
-    <button type="submit">Zaloguj</button>
-</EditForm>
+        <div>
+            <label>Hasło:</label>
+            <InputText @bind-Value="loginModel.Password" type="password"></InputText>
+        </div>
+
+        <button type="submit">Zaloguj się</button>
+        <NavLink href="#" @onclick="SwapForm">Utwórz nowe konto</NavLink>
+    </EditForm>
+}
+else
+{
+    <h3>Utwórz nowe konto</h3>
+
+    <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <div>
+            <label>Nazwa użytkownika:</label>
+            <InputText @bind-Value="registerModel.Username"></InputText>
+        </div>
+
+        <div>
+            <label>Hasło:</label>
+            <InputText @bind-Value="registerModel.Password" type="password"></InputText>
+        </div>
+
+        <div>
+            <label>Powtórz hasło:</label>
+            <InputText @bind-Value="passwordRepeat" type="password"></InputText>
+        </div>
+
+        <button type="submit">Zarejestruj się</button>
+        <NavLink href="#" @onclick="SwapForm">Zaloguj się na swoje konto</NavLink>
+    </EditForm>
+}
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -28,8 +59,32 @@
 
 @code
 {
+    private bool isRegistered = true;
+    private bool isLogged;
     private LoginModel loginModel = new LoginModel();
+    private LoginModel registerModel = new LoginModel();
+    private string passwordRepeat = string.Empty;
     private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLogged = await AuthService.IsLoggedAsync();
+
+        if (isLogged)
+        {
+            NavigationManager.NavigateTo("/app");
+        }
+    }
+
+    private void SwapForm()
+    {
+        isRegistered = !isRegistered;
+        errorMessage = string.Empty;
+
+        loginModel = new();
+        registerModel = new();
+        passwordRepeat = string.Empty;
+    }
 
     private async Task HandleLogin()
     {
@@ -43,5 +98,42 @@
         {
             errorMessage = "Nieprawidłowy login lub hasło!";
         }
+    }
+
+    private async Task HandleRegister()
+    {
+        if (string.IsNullOrWhiteSpace(registerModel.Username))
+        {
+            errorMessage = "Nazwa użytkownika jest wymagana!";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(registerModel.Password))
+        {
+            errorMessage = "Hasło jest wymagane!";
+            return;
+        }
+
+        if (registerModel.Password != passwordRepeat)
+        {
+            errorMessage = "Hasła się nie zgadzają!";
+            return;
+        }
+
+        if (registerModel.Username.Contains(':'))
+        {
+            errorMessage = "Nazwa użytkownika zawiera niedozwolone znaki!";
+            return;
+        }
+
+        bool statusCode = await AuthService.RegisterAsync(registerModel.Username, registerModel.Password);
+        if (!statusCode)
+        {
+            errorMessage = "Ta nazwa użytkownika jest już zajęta!";
+            return;
+        }
+
+        loginModel = registerModel;
+        await HandleLogin();
     }
 }
