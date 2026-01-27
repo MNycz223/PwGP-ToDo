@@ -202,29 +202,6 @@ paths:
           description: Unathorized action
         "404":
           description: Task with that id does not exist
-    put:
-      description: Modifies task with specified id
-      security:
-        - basicAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                description:
-                  type: string
-                assignees:
-                  type: array
-                  items:
-                    type: integer
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: Unathorized action
-        "404":
-          description: Task with specified id not found or invalid assingee id
     delete:
       description: Deletes task with specified id
       security:
