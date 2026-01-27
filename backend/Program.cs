@@ -21,25 +21,24 @@ public class Program
 
         app.MapGet("/login", () => { }).RequireAuthorization();
 
-        app.MapGet("/category", () =>
+        app.MapGet("/category", (SqliteDb db) =>
         {
-            CategoryModel[] cat = [
-                new(){Id=1, Name="Do zrobienia"},
-                new(){Id=2, Name="W trakcie"},
-                new(){Id=3, Name="Gotowe"}
-            ];
+            var cat = db.Query<CategoryModel>("SELECT Id, Name FROM categories");
             return cat;
         }).RequireAuthorization();
-        app.MapPost("/category", (string name) =>
+        app.MapPost("/category", (string name, SqliteDb db) =>
         {
-            return Results.Ok(1);    
+            db.Execute("INSERT INTO categories(Name) VALUES (@name)", new {name = name});
+            return Results.Ok();    
         }).RequireAuthorization();
-        app.MapPut("/category", (CategoryModel cat) =>
+        app.MapPut("/category", (CategoryModel cat, SqliteDb db) =>
         {
-            return Results.Ok(cat);
+            db.Execute("UPDATE categories SET Name = @Name WHERE Id=@Id", cat);
+            return Results.Ok();
         }).RequireAuthorization();
-        app.MapDelete("/category", (int id) =>
+        app.MapDelete("/category", (int id, SqliteDb db) =>
         {
+            db.Execute("DELETE FROM categories WHERE Id=@id", new { id = id });
             return Results.Ok($"Deleted category with id={id}");    
         }).RequireAuthorization();
 

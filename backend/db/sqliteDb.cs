@@ -17,6 +17,7 @@ public class SqliteDb
         con.Open();
 
         con.Execute("CREATE TABLE IF NOT EXISTS users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Username TEXT UNIQUE, Password TEXT)");
+        con.Execute("CREATE TABLE IF NOT EXISTS categories (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT UNIQUE)");
     }
 
     public void Execute(string sql, object? param = null)
