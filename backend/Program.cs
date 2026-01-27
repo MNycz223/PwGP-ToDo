@@ -1,4 +1,5 @@
 using backend.auth;
+using backend.db;
 using Microsoft.AspNetCore.Authentication;
 using common.Models;
 using System.ComponentModel.DataAnnotations;
@@ -10,10 +11,11 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddSingleton<SqliteDb>();
         builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("Basic", options => { });
         builder.Services.AddAuthorization();
         var app = builder.Build();
-
+        
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -81,25 +83,25 @@ public class Program
             return Results.Ok();
         }).RequireAuthorization();
 
-        app.MapGet("/user", () =>
+        app.MapGet("/user", (SqliteDb db) =>
         {
-            UserModel[] users = [
-                new(){Id=1,Username="admin"},
-                new(){Id=2,Username="tak"}
-            ];
+            IEnumerable<UserModel> users = db.Query<UserModel>("SELECT Id, Username FROM users");
             return users;
         }).RequireAuthorization();
-        app.MapPost("/user", (LoginModel login) =>
+        app.MapPost("/user", (LoginModel login, SqliteDb db) =>
         {
-            return 2;
-        }).RequireAuthorization();
+            db.Execute("INSERT INTO users(Username, Password) VALUES (@Username, @Password)", login);
+            return Results.Ok();
+        });
 
-        app.MapPut("/user/{username}", (string username, string password) =>
+        app.MapPut("/user/{username}", (string username, string password, SqliteDb db) =>
         {
+            db.Execute("UPDATE users SET Password = @password WHERE Username=@username", new { password = password, username = username });
             return Results.Ok();
         }).RequireAuthorization();
-        app.MapDelete("/user/{username}", (string username) =>
+        app.MapDelete("/user/{username}", (string username, SqliteDb db) =>
         {
+            db.Execute("DELETE FROM users WHERE Username=@username", new { username = username });
             return Results.Ok();
         }).RequireAuthorization();
 

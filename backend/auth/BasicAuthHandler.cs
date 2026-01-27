@@ -4,16 +4,23 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
+using backend.db;
+using common.Models;
 
 namespace backend.auth;
 
 public class BasicAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    private readonly SqliteDb _db;
     public BasicAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
-        UrlEncoder encoder)
-        : base(options, logger, encoder) { }
+        UrlEncoder encoder,
+        SqliteDb db)
+        : base(options, logger, encoder)
+    {
+        _db = db;
+    }
         
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -33,8 +40,11 @@ public class BasicAuthHandler : AuthenticationHandler<AuthenticationSchemeOption
             var username = credentials[0];
             var passwd = credentials[1];
 
-            if (username != "admin" || passwd != "toor")
-                return Task.FromResult(AuthenticateResult.Fail("Invalid credentials"));
+            var login = _db.QueryFirst<LoginModel>("SELECT Username, Password FROM users WHERE Username=@username", new { username = username });
+            if (login.Password != passwd)
+            {
+                return Task.FromResult(AuthenticateResult.Fail($"Invalid credentials"));
+            }
 
             var claims = new[]
             {
