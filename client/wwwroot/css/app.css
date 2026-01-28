@@ -404,3 +404,10 @@ body:has(#blazor-error-ui[style*="display: block"]) {
     resize: vertical;
     min-height: 80px;
 }
+
+.app-success {
+    margin-top: 1rem;
+    color: #197e0c;
+    text-align: center;
+    font-size: 0.9rem;
+}

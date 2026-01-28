@@ -9,8 +9,8 @@
 
         <div class="nav-items">
             <button class="nav-button" @onclick="AddCategory">Dodaj nową kategorię</button>
-            <button class="nav-button" type="button">Moje konto</button>
-            <button class="nav-button" @onclick="Logout" type="button">Wyloguj</button>
+            <button class="nav-button" @onclick="EditUser">Moje konto</button>
+            <button class="nav-button" @onclick="LogoutAsync">Wyloguj</button>
         </div>
     </div>
 
@@ -159,6 +159,38 @@
     </div>
 }
 
+@if (showUserModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-card">
+            <h2>Moje konto - @user.Username</h2>
+
+            <EditForm Model="this" OnValidSubmit="ChangePassword">
+                <div class="form-group">
+                    <label>Nowe hasło</label>
+                    <InputText type="password" @bind-Value="newPassword" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(userError))
+                {
+                    <p class="app-error">@userError</p>
+                }
+
+                @if (!string.IsNullOrEmpty(userSuccess))
+                {
+                    <p class="app-success">@userSuccess</p>
+                }
+
+                <button class="modal-button" type="submit">Zmień hasło</button>
+            </EditForm>
+
+            <button class="modal-button delete" @onclick="DeleteUser">Usuń konto</button>
+
+            <button class="modal-button cancel" @onclick="CloseModal">Zamknij</button>
+        </div>
+    </div>
+}
+
 @code
 {
     internal class CategoryWithTasksModel : CategoryModel
@@ -172,21 +204,26 @@
     private bool showEditCategoryModal = false;
     private bool showAddTaskModal = false;
     private bool showEditTaskModal = false;
+    private bool showUserModal = false;
 
     private int editingCategoryId = 0;
     private string newCategoryName = string.Empty;
     private string editCategoryName = string.Empty;
+    private string newPassword = string.Empty;
 
     private string categoryError = string.Empty;
     private string taskError = string.Empty;
+    private string userError = string.Empty;
+    private string userSuccess = string.Empty;
 
     private List<CategoryWithTasksModel> categories = new();
-
+    private UserModel user = new();
     private TaskModel editingTask = new();
 
     protected override async Task OnInitializedAsync()
     {
         isLogged = await AuthService.IsLoggedAsync();
+        user = await AuthService.GetLoggedUserAsync();
 
         if (!isLogged)
         {
@@ -377,6 +414,54 @@
         }
     }
 
+    private async Task ChangePassword()
+    {
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            userError = "Hasło nie może być puste!";
+            return;
+        }
+
+        try
+        {
+            var response = await _client.PutAsync($"/user/{user.Username}?password={Uri.EscapeDataString(newPassword)}", null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                userError = "Nie udało się zmienić hasła!";
+                return;
+            }
+
+            userSuccess = "Hasło zostało zmienione!";
+            newPassword = string.Empty;
+        }
+        catch
+        {
+            userError = "Wystąpił błąd podczas zmiany hasła!";
+        }
+    }
+
+    private async Task DeleteUser()
+    {
+        try
+        {
+            var response = await _client.DeleteAsync($"/user/{user.Username}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                userError = "Nie udało się usunąć konta!";
+                return;
+            }
+
+            await LogoutAsync();
+            NavigationManager.NavigateTo("/");
+        }
+        catch
+        {
+            userError = "Wystąpił błąd poczas usuwania konta!";
+        }
+    }
+
     private void AddCategory()
     {
         categoryError = string.Empty;
@@ -423,7 +508,14 @@
         showEditTaskModal = true;
     }
 
-    private async Task Logout()
+    private void EditUser()
+    {
+        userError = string.Empty;
+        newPassword = string.Empty;
+        showUserModal = true;
+    }
+
+    private async Task LogoutAsync()
     {
         await AuthService.LogoutAsync();
         NavigationManager.NavigateTo("/");
@@ -435,8 +527,11 @@
         showEditCategoryModal = false;
         showAddTaskModal = false;
         showEditTaskModal = false;
+        showUserModal = false;
 
         categoryError = string.Empty;
         taskError = string.Empty;
+        userError = string.Empty;
+        userSuccess = string.Empty;
     }
 }

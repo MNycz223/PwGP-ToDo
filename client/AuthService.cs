@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Blazored.SessionStorage;
+using common.Models;
 
 namespace client;
 
@@ -11,6 +12,7 @@ public class AuthService
     private readonly ISessionStorageService _sessionStorage;
 
     private const string AuthTokenKey = "authToken";
+    private const string UsernameKey = "username";
 
     public AuthService(HttpClient httpClient, ISessionStorageService sessionStorage)
     {
@@ -28,7 +30,7 @@ public class AuthService
         if (response.IsSuccessStatusCode)
         {
             await _sessionStorage.SetItemAsync(AuthTokenKey, authHeader);
-            await _sessionStorage.SetItemAsync("username", username);
+            await _sessionStorage.SetItemAsync(UsernameKey, username);
             return true;
         }
 
@@ -62,6 +64,12 @@ public class AuthService
     {
         var token = await _sessionStorage.GetItemAsync<string>(AuthTokenKey);
         return !string.IsNullOrWhiteSpace(token);
+    }
+
+    public async Task<UserModel> GetLoggedUserAsync()
+    {
+        var username = await _sessionStorage.GetItemAsync<string>(UsernameKey);
+        return new() { Username = username };
     }
 
     public async Task LogoutAsync()
