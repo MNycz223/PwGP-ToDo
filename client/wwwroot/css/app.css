@@ -388,3 +388,19 @@ body:has(#blazor-error-ui[style*="display: block"]) {
 .modal-button.delete:hover {
     background: #f57c00;
 }
+
+.modal-card select {
+    padding: 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.modal-card textarea {
+    padding: 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 80px;
+}

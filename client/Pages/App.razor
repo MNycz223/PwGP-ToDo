@@ -90,6 +90,75 @@
     </div>
 }
 
+@if (showAddTaskModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-card">
+            <h2>Nowe zadanie</h2>
+
+            <EditForm Model="editingTask" OnValidSubmit="SubmitAddTask">
+                <div class="form-group">
+                    <label>Tytuł</label>
+                    <InputText @bind-Value="editingTask.Title" />
+                </div>
+
+                <div class="form-group">
+                    <label>Opis</label>
+                    <InputTextArea @bind-Value="editingTask.Description" rows="4" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(taskError))
+                {
+                    <p class="app-error">@taskError</p>
+                }
+
+                <button class="modal-button" type="submit">Dodaj</button>
+                <button class="modal-button cancel" type="button" @onclick="CloseModal">Anuluj</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (showEditTaskModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-card">
+            <h2>Edycja zadania</h2>
+
+            <EditForm Model="editingTask" OnValidSubmit="SubmitEditTask">
+                <div class="form-group">
+                    <label>Tytuł</label>
+                    <InputText @bind-Value="editingTask.Title" />
+                </div>
+
+                <div class="form-group">
+                    <label>Opis</label>
+                    <InputTextArea @bind-Value="editingTask.Description" rows="4" />
+                </div>
+
+                <div class="form-group">
+                    <label>Kategoria</label>
+                    <select @bind="editingTask.IdCategory">
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </select>
+                </div>
+
+                @if (!string.IsNullOrEmpty(taskError))
+                {
+                    <p class="app-error">@taskError</p>
+                }
+
+                <button class="modal-button" type="submit">Zapisz</button>
+                <button class="modal-button delete" type="button" @onclick="DeleteTask">Usuń</button>
+                <button class="modal-button cancel" type="button" @onclick="CloseModal">Anuluj</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
 @code
 {
     internal class CategoryWithTasksModel : CategoryModel
@@ -98,13 +167,22 @@
     }
 
     private bool isLogged;
+
     private bool showAddCategoryModal = false;
     private bool showEditCategoryModal = false;
+    private bool showAddTaskModal = false;
+    private bool showEditTaskModal = false;
+
     private int editingCategoryId = 0;
     private string newCategoryName = string.Empty;
     private string editCategoryName = string.Empty;
+
     private string categoryError = string.Empty;
+    private string taskError = string.Empty;
+
     private List<CategoryWithTasksModel> categories = new();
+
+    private TaskModel editingTask = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,6 +308,74 @@
         }
     }
 
+    private async Task SubmitAddTask()
+    {
+        if (string.IsNullOrWhiteSpace(editingTask.Title))
+        {
+            taskError = "Tytuł jest wymagany!";
+            return;
+        }
+
+        try
+        {
+            var response = await _client.PostAsJsonAsync("/task", editingTask);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                taskError = "Nie udało się dodać zadania!";
+                return;
+            }
+
+            await LoadCategories();
+            CloseModal();
+        }
+        catch
+        {
+            taskError = "Błąd serwera!";
+        }
+    }
+
+    private async Task SubmitEditTask()
+    {
+        try
+        {
+            var response = await _client.PutAsJsonAsync("/task", editingTask);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                taskError = "Nie udało się zapisać zmian!";
+                return;
+            }
+
+            await LoadCategories();
+            CloseModal();
+        }
+        catch
+        {
+            taskError = "Błąd edycji zadania!";
+        }
+    }
+
+    private async Task DeleteTask()
+    {
+        try
+        {
+            var response = await _client.DeleteAsync($"/task/{editingTask.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                taskError = "Nie udało się usunąć zadania!";
+                return;
+            }
+
+            await LoadCategories();
+            CloseModal();
+        }
+        catch
+        {
+            taskError = "Błąd usuwania zadania!";
+        }
+    }
 
     private void AddCategory()
     {
@@ -252,10 +398,29 @@
 
     private void AddTask(int categoryId)
     {
+        taskError = string.Empty;
+        editingCategoryId = categoryId;
+
+        editingTask = new TaskModel
+        {
+            IdCategory = categoryId
+        };
+
+        showAddTaskModal = true;
     }
 
     private void OpenTask(TaskModel task)
     {
+        taskError = string.Empty;
+        editingTask = new TaskModel
+        {
+            Id = task.Id,
+            Title = task.Title,
+            Description = task.Description,
+            IdCategory = task.IdCategory
+        };
+
+        showEditTaskModal = true;
     }
 
     private async Task Logout()
@@ -268,6 +433,10 @@
     {
         showAddCategoryModal = false;
         showEditCategoryModal = false;
+        showAddTaskModal = false;
+        showEditTaskModal = false;
+
         categoryError = string.Empty;
+        taskError = string.Empty;
     }
 }
