@@ -246,7 +246,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Błąd podczas ładowania kategorii: " + ex.Message);
+            Console.WriteLine("Wystąpił błąd podczas ładowania kategorii: " + ex.Message);
         }
     }
 
@@ -261,7 +261,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas ładowania tasków dla kategorii {category.Id}: {ex.Message}");
+                Console.WriteLine($"Wystąpił błąd podczas ładowania tasków dla kategorii {category.Id}: {ex.Message}");
             }
         }
     }
@@ -287,9 +287,9 @@
             await LoadCategories();
             CloseModal();
         }
-        catch
+        catch (Exception ex)
         {
-            categoryError = "Wystąpił błąd podczas dodawania kategorii!";
+            Console.WriteLine($"Wystąpił błąd podczas dodawania kategorii: {ex.Message}");
         }
     }
 
@@ -318,9 +318,9 @@
             await LoadCategories();
             CloseModal();
         }
-        catch
+        catch (Exception ex)
         {
-            categoryError = "Wystąpił błąd podczas edycji kategorii!";
+            Console.WriteLine($"Wystąpił błąd podczas edycji kategorii {editingCategoryId}: {ex.Message}");
         }
     }
 
@@ -339,9 +339,9 @@
             await LoadCategories();
             CloseModal();
         }
-        catch
+        catch (Exception ex)
         {
-            categoryError = "Nie udało się usunąć kategorii!";
+            Console.WriteLine($"Wystąpił błąd podczas usuwania kategorii {editingCategoryId}: {ex.Message}");
         }
     }
 
@@ -366,9 +366,9 @@
             await LoadCategories();
             CloseModal();
         }
-        catch
+        catch (Exception ex)
         {
-            taskError = "Błąd serwera!";
+            Console.WriteLine($"Wystąpił błąd podczas dodawania zadania: {ex.Message}");
         }
     }
 
@@ -387,9 +387,9 @@
             await LoadCategories();
             CloseModal();
         }
-        catch
+        catch (Exception ex)
         {
-            taskError = "Błąd edycji zadania!";
+            Console.WriteLine($"Wystąpił błąd podczas edycji zadania {editingTask.Id}: {ex.Message}");
         }
     }
 
@@ -408,9 +408,9 @@
             await LoadCategories();
             CloseModal();
         }
-        catch
+        catch (Exception ex)
         {
-            taskError = "Błąd usuwania zadania!";
+            Console.WriteLine($"Wystąpił błąd podczas usuwania zadania {editingTask.Id}: {ex.Message}");
         }
     }
 
@@ -435,9 +435,9 @@
             userSuccess = "Hasło zostało zmienione!";
             newPassword = string.Empty;
         }
-        catch
+        catch (Exception ex)
         {
-            userError = "Wystąpił błąd podczas zmiany hasła!";
+            Console.WriteLine($"Wystąpił błąd podczas zmiany hasła {user.Id}: {ex.Message}");
         }
     }
 
@@ -456,9 +456,9 @@
             await LogoutAsync();
             NavigationManager.NavigateTo("/");
         }
-        catch
+        catch (Exception ex)
         {
-            userError = "Wystąpił błąd poczas usuwania konta!";
+            Console.WriteLine($"Wystąpił błąd podczas usuwania użytkownika {user.Id}: {ex.Message}");
         }
     }
 
