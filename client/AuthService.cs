@@ -45,13 +45,16 @@ public class AuthService
         return response.IsSuccessStatusCode;
     }
 
-    public async Task RestoreLoginAsync()
+    public async Task RestoreLoginAsync(HttpClient client)
     {
+        if (client == null)
+            throw new ArgumentNullException(nameof(client));
+
         var token = await _sessionStorage.GetItemAsync<string>(AuthTokenKey);
 
         if (!string.IsNullOrWhiteSpace(token))
         {
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
         }
     }
 

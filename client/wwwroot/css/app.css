@@ -223,3 +223,85 @@ body:has(#blazor-error-ui[style*="display: block"]) {
 .nav-button:hover {
     background: #203a43;
 }
+
+.categories-panel {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    height: calc(100vh - 64px);
+    overflow-x: auto;
+}
+
+.category-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 350px;
+    max-width: 400px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    height: 100%;
+    padding: 0.8rem 1rem;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.category-buttons {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.add-task-button {
+    padding: 0.4rem 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: #2c5364;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-task-button:hover {
+    background: #203a43;
+}
+
+.edit-category-button {
+    padding: 0.4rem 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: #ff9800;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.edit-category-button:hover {
+    background: #f57c00;
+}
+
+.tasks-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.task-card {
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    background: #e0e0e0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.task-card:hover {
+    background: #cfcfcf;
+}

@@ -1,25 +1,55 @@
 @page "/app"
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
+@inject HttpClient _client
 
 <div class="app-page">
     <div class="navbar">
         <h1>ToDo App</h1>
 
         <div class="nav-items">
+            <button class="nav-button" @onclick="AddCategory">Dodaj nową kategorię</button>
             <button class="nav-button" type="button">Moje konto</button>
             <button class="nav-button" @onclick="Logout" type="button">Wyloguj</button>
         </div>
     </div>
 
     <div class="content">
-        <p>Tutaj będą kategorie...</p>
+        <div class="categories-panel">
+            @foreach (var category in categories)
+            {
+                <div class="category-card">
+                    <div class="category-header">
+                        <span class="category-name">@category.Name</span>
+                        <div class="category-buttons">
+                            <button class="add-task-button" @onclick="() => AddTask(category.Id)">Nowe zadanie</button>
+                            <button class="edit-category-button" @onclick="() => EditCategory(category.Id)">Edytuj</button>
+                        </div>
+                    </div>
+
+                    <div class="tasks-list">
+                        @foreach (var task in category.Tasks)
+                        {
+                            <div class="task-card" @onclick="() => OpenTask(task)">
+                                @task.Title
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 </div>
 
 @code
 {
+    internal class CategoryWithTasksModel : CategoryModel
+    {
+        public List<TaskModel> Tasks { get; set; } = new();
+    }
+    
     private bool isLogged;
+    private List<CategoryWithTasksModel> categories = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -29,6 +59,57 @@
         {
             NavigationManager.NavigateTo("/");
         }
+        else
+        {
+            await LoadCategories();
+            await LoadTasksForCategories();
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        await AuthService.RestoreLoginAsync(_client);
+
+        try
+        {
+            categories = await _client.GetFromJsonAsync<List<CategoryWithTasksModel>>("/category") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Błąd podczas ładowania kategorii: " + ex.Message);
+        }
+    }
+
+    private async Task LoadTasksForCategories()
+    {
+        foreach (var category in categories)
+        {
+            try
+            {
+                var tasks = await _client.GetFromJsonAsync<List<TaskModel>>($"/task?catId={category.Id}");
+                category.Tasks = tasks ?? new List<TaskModel>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd podczas ładowania tasków dla kategorii {category.Id}: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task AddCategory()
+    {
+    }
+
+    private async Task EditCategory(int categoryId)
+    {
+    }
+
+    private async Task AddTask(int categoryId)
+    {
+    }
+
+    private void OpenTask(TaskModel task)
+    {
     }
 
     private async Task Logout()
