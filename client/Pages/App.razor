@@ -41,14 +41,69 @@
     </div>
 </div>
 
+@if (showAddCategoryModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-card">
+            <h2>Dodaj nową kategorię</h2>
+
+            <EditForm Model="this" OnValidSubmit="SubmitAddCategory">
+                <div class="form-group">
+                    <label>Nazwa kategorii</label>
+                    <InputText @bind-Value="newCategoryName" class="form-control" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(categoryError))
+                {
+                    <p class="app-error">@categoryError</p>
+                }
+
+                <button type="submit" class="modal-button">Dodaj</button>
+                <button type="button" class="modal-button cancel" @onclick="CloseModal">Anuluj</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (showEditCategoryModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-card">
+            <h2>Edytuj kategorię</h2>
+
+            <EditForm Model="this" OnValidSubmit="SubmitEditCategory">
+                <div class="form-group">
+                    <label>Nazwa kategorii</label>
+                    <InputText @bind-Value="editCategoryName" class="form-control" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(categoryError))
+                {
+                    <p class="app-error">@categoryError</p>
+                }
+
+                <button type="submit" class="modal-button">Zapisz zmiany</button>
+                <button type="button" class="modal-button delete" @onclick="DeleteCategory">Usuń kategorię</button>
+                <button type="button" class="modal-button cancel" @onclick="CloseModal">Anuluj</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
 @code
 {
     internal class CategoryWithTasksModel : CategoryModel
     {
         public List<TaskModel> Tasks { get; set; } = new();
     }
-    
+
     private bool isLogged;
+    private bool showAddCategoryModal = false;
+    private bool showEditCategoryModal = false;
+    private int editingCategoryId = 0;
+    private string newCategoryName = string.Empty;
+    private string editCategoryName = string.Empty;
+    private string categoryError = string.Empty;
     private List<CategoryWithTasksModel> categories = new();
 
     protected override async Task OnInitializedAsync()
@@ -62,7 +117,6 @@
         else
         {
             await LoadCategories();
-            await LoadTasksForCategories();
         }
     }
 
@@ -73,6 +127,7 @@
         try
         {
             categories = await _client.GetFromJsonAsync<List<CategoryWithTasksModel>>("/category") ?? new();
+            await LoadTasksForCategories();
         }
         catch (Exception ex)
         {
@@ -96,15 +151,106 @@
         }
     }
 
-    private async Task AddCategory()
+    private async Task SubmitAddCategory()
     {
+        if (string.IsNullOrWhiteSpace(newCategoryName))
+        {
+            categoryError = "Nazwa kategorii nie może być pusta!";
+            return;
+        }
+
+        try
+        {
+            var response = await _client.PostAsync($"/category?name={Uri.EscapeDataString(newCategoryName)}", null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                categoryError = "Ta nazwa kategorii już istnieje!";
+                return;
+            }
+
+            await LoadCategories();
+            CloseModal();
+        }
+        catch
+        {
+            categoryError = "Wystąpił błąd podczas dodawania kategorii!";
+        }
     }
 
-    private async Task EditCategory(int categoryId)
+    private async Task SubmitEditCategory()
     {
+        if (string.IsNullOrWhiteSpace(editCategoryName))
+        {
+            categoryError = "Nazwa kategorii nie może być pusta!";
+            return;
+        }
+
+        try
+        {
+            var categoryToUpdate = new { Id = editingCategoryId, Name = editCategoryName };
+            var json = JsonSerializer.Serialize(categoryToUpdate);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _client.PutAsync("/category", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                categoryError = "Ta nazwa kategorii już istnieje!";
+                return;
+            }
+
+            await LoadCategories();
+            CloseModal();
+        }
+        catch
+        {
+            categoryError = "Wystąpił błąd podczas edycji kategorii!";
+        }
     }
 
-    private async Task AddTask(int categoryId)
+    private async Task DeleteCategory()
+    {
+        try
+        {
+            var response = await _client.DeleteAsync($"/category?id={editingCategoryId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                categoryError = "Kategoria nie istnieje!";
+                return;
+            }
+
+            await LoadCategories();
+            CloseModal();
+        }
+        catch
+        {
+            categoryError = "Nie udało się usunąć kategorii!";
+        }
+    }
+
+
+    private void AddCategory()
+    {
+        categoryError = string.Empty;
+        newCategoryName = string.Empty;
+        showAddCategoryModal = true;
+    }
+
+    private void EditCategory(int categoryId)
+    {
+        var category = categories.FirstOrDefault(c => c.Id == categoryId);
+        if (category != null)
+        {
+            categoryError = string.Empty;
+            editCategoryName = category.Name;
+            editingCategoryId = categoryId;
+            showEditCategoryModal = true;
+        }
+    }
+
+    private void AddTask(int categoryId)
     {
     }
 
@@ -116,5 +262,12 @@
     {
         await AuthService.LogoutAsync();
         NavigationManager.NavigateTo("/");
+    }
+
+    private void CloseModal()
+    {
+        showAddCategoryModal = false;
+        showEditCategoryModal = false;
+        categoryError = string.Empty;
     }
 }
