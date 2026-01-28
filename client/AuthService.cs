@@ -22,7 +22,7 @@ public class AuthService
 
     public async Task<bool> LoginAsync(string username, string password)
     {
-        var authHeader = await GenerateTokenAsync(username, password);
+        var authHeader = GenerateToken(username, password);
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
 
         var response = await _client.GetAsync("/login");
@@ -68,7 +68,7 @@ public class AuthService
         if (string.IsNullOrWhiteSpace(username))
             throw new InvalidOperationException("No username stored in session.");
 
-        var token = await GenerateTokenAsync(username, password);
+        var token = GenerateToken(username, password);
         if (!string.IsNullOrWhiteSpace(token))
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
@@ -76,7 +76,7 @@ public class AuthService
         }
     }
 
-    private async Task<string> GenerateTokenAsync(string username, string password)
+    private string GenerateToken(string username, string password)
     {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
     }
