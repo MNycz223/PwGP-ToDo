@@ -2,8 +2,20 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
-<h1>ToDo App</h1>
-<button @onclick="Logout" type="button">Wyloguj</button>
+<div class="app-page">
+    <div class="navbar">
+        <h1>ToDo App</h1>
+
+        <div class="nav-items">
+            <button class="nav-button" type="button">Moje konto</button>
+            <button class="nav-button" @onclick="Logout" type="button">Wyloguj</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <p>Tutaj będą kategorie...</p>
+    </div>
+</div>
 
 @code
 {
