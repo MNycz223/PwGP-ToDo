@@ -2,60 +2,65 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
-@if (isRegistered)
-{
-    <h3>Zaloguj</h3>
+<div class="auth-page">
+    <div class="auth-card">
 
-    <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-        <DataAnnotationsValidator></DataAnnotationsValidator>
-        <ValidationSummary></ValidationSummary>
+        @if (isRegistered)
+        {
+            <h1>ToDo App</h1>
 
-        <div>
-            <label>Nazwa użytkownika:</label>
-            <InputText @bind-Value="loginModel.Username"></InputText>
-        </div>
+            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <div class="form-group">
+                    <label>Nazwa użytkownika</label>
+                    <InputText @bind-Value="loginModel.Username" />
+                </div>
 
-        <div>
-            <label>Hasło:</label>
-            <InputText @bind-Value="loginModel.Password" type="password"></InputText>
-        </div>
+                <div class="form-group">
+                    <label>Hasło</label>
+                    <InputText @bind-Value="loginModel.Password" type="password" />
+                </div>
 
-        <button type="submit">Zaloguj się</button>
-        <NavLink href="#" @onclick="SwapForm">Utwórz nowe konto</NavLink>
-    </EditForm>
-}
-else
-{
-    <h3>Utwórz nowe konto</h3>
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p class="auth-error">@errorMessage</p>
+                }
 
-    <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
-        <DataAnnotationsValidator></DataAnnotationsValidator>
-        <ValidationSummary></ValidationSummary>
+                <button type="submit">Zaloguj się</button>
+                <a @onclick="SwapForm">Nie masz konta? Zarejestruj się</a>
+            </EditForm>
+        }
+        else
+        {
+            <h1>Utwórz nowe konto</h1>
 
-        <div>
-            <label>Nazwa użytkownika:</label>
-            <InputText @bind-Value="registerModel.Username"></InputText>
-        </div>
+            <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+                <div class="form-group">
+                    <label>Nazwa użytkownika</label>
+                    <InputText @bind-Value="registerModel.Username" />
+                </div>
 
-        <div>
-            <label>Hasło:</label>
-            <InputText @bind-Value="registerModel.Password" type="password"></InputText>
-        </div>
+                <div class="form-group">
+                    <label>Hasło</label>
+                    <InputText @bind-Value="registerModel.Password" type="password" />
+                </div>
 
-        <div>
-            <label>Powtórz hasło:</label>
-            <InputText @bind-Value="passwordRepeat" type="password"></InputText>
-        </div>
+                <div class="form-group">
+                    <label>Powtórz hasło</label>
+                    <InputText @bind-Value="passwordRepeat" type="password" />
+                </div>
 
-        <button type="submit">Zarejestruj się</button>
-        <NavLink href="#" @onclick="SwapForm">Zaloguj się na swoje konto</NavLink>
-    </EditForm>
-}
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p class="auth-error">@errorMessage</p>
+                }
 
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <p style="color: red">@errorMessage</p>
-}
+                <button type="submit">Zarejestruj się</button>
+                <a @onclick="SwapForm">Posiadasz już konto? Zaloguj się</a>
+            </EditForm>
+        }
+
+    </div>
+</div>
 
 @code
 {
