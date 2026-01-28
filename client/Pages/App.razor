@@ -438,7 +438,7 @@
 
             await AuthService.GenerateNewTokenAsync(newPassword);
             await AuthService.RestoreLoginAsync(_client);
-            
+
             newPassword = string.Empty;
         }
         catch (Exception ex)
@@ -499,14 +499,7 @@
 
     private void OpenTask(TaskModel task)
     {
-        editingTask = new TaskModel
-        {
-            Id = task.Id,
-            Title = task.Title,
-            Description = task.Description,
-            IdCategory = task.IdCategory
-        };
-
+        editingTask = task;
         showEditTaskModal = true;
     }
 
