@@ -22,7 +22,7 @@ public class AuthService
 
     public async Task<bool> LoginAsync(string username, string password)
     {
-        var authHeader = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
+        var authHeader = await GenerateTokenAsync(username, password);
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
 
         var response = await _client.GetAsync("/login");
@@ -53,11 +53,32 @@ public class AuthService
             throw new ArgumentNullException(nameof(client));
 
         var token = await _sessionStorage.GetItemAsync<string>(AuthTokenKey);
-
         if (!string.IsNullOrWhiteSpace(token))
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
         }
+    }
+
+    public async Task GenerateNewTokenAsync(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Password cannot be empty.");
+
+        var username = await _sessionStorage.GetItemAsync<string>(UsernameKey);
+        if (string.IsNullOrWhiteSpace(username))
+            throw new InvalidOperationException("No username stored in session.");
+
+        var token = await GenerateTokenAsync(username, password);
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
+            await _sessionStorage.SetItemAsync(AuthTokenKey, token);
+        }
+    }
+
+    private async Task<string> GenerateTokenAsync(string username, string password)
+    {
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
     }
 
     public async Task<bool> IsLoggedAsync()

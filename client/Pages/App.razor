@@ -428,11 +428,17 @@
 
             if (!response.IsSuccessStatusCode)
             {
+                userSuccess = string.Empty;
                 userError = "Nie udało się zmienić hasła!";
                 return;
             }
 
+            userError = string.Empty;
             userSuccess = "Hasło zostało zmienione!";
+
+            await AuthService.GenerateNewTokenAsync(newPassword);
+            await AuthService.RestoreLoginAsync(_client);
+            
             newPassword = string.Empty;
         }
         catch (Exception ex)
@@ -464,7 +470,6 @@
 
     private void AddCategory()
     {
-        categoryError = string.Empty;
         newCategoryName = string.Empty;
         showAddCategoryModal = true;
     }
@@ -474,7 +479,6 @@
         var category = categories.FirstOrDefault(c => c.Id == categoryId);
         if (category != null)
         {
-            categoryError = string.Empty;
             editCategoryName = category.Name;
             editingCategoryId = categoryId;
             showEditCategoryModal = true;
@@ -483,7 +487,6 @@
 
     private void AddTask(int categoryId)
     {
-        taskError = string.Empty;
         editingCategoryId = categoryId;
 
         editingTask = new TaskModel
@@ -496,7 +499,6 @@
 
     private void OpenTask(TaskModel task)
     {
-        taskError = string.Empty;
         editingTask = new TaskModel
         {
             Id = task.Id,
@@ -510,7 +512,6 @@
 
     private void EditUser()
     {
-        userError = string.Empty;
         newPassword = string.Empty;
         showUserModal = true;
     }
