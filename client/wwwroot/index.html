@@ -11,7 +11,7 @@
             <div class="loading-page">
                 <div class="loading-card">
                     <h1>ToDo App</h1>
-        
+                    
                     <div class="spinner"></div>
                     <p>Ładowanie aplikacji…</p>
                 </div>
@@ -19,9 +19,15 @@
         </div>
         
         <div id="blazor-error-ui">
-            An unhandled error has occurred.
-            <a href="" class="reload">Reload</a>
-            <a class="dismiss">🗙</a>
+            <div class="blazor-error-modal">
+                <h1>Ups 😕</h1>
+
+                <p>
+                    Wystąpił błąd połączenia.<br/>
+                    Aplikacja nie może działać prawidłowo.
+                </p>
+                <a href="" class="reload">Odśwież stronę</a>
+            </div>
         </div>
 
         <script src="_framework/blazor.webassembly.js"></script>
