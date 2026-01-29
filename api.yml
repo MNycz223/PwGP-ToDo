@@ -248,6 +248,15 @@ paths:
       required: true
       schema:
         type: string
+    get:
+      description: Fetches user record using username
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: Ok
+        "401":
+          description: Unathorized actio
     put:
       parameters:
       - name: password
