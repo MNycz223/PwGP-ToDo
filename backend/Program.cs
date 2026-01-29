@@ -14,8 +14,10 @@ public class Program
         builder.Services.AddSingleton<SqliteDb>();
         builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("Basic", options => { });
         builder.Services.AddAuthorization();
+        builder.Services.AddCors(options => { options.AddPolicy("CorsPolicy", policy => policy.WithOrigins("http://localhost:5282").AllowAnyHeader().AllowAnyMethod()); });
         var app = builder.Build();
-        
+
+        app.UseCors("CorsPolicy");
         app.UseAuthentication();
         app.UseAuthorization();
 
