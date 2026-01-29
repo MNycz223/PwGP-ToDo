@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Blazored.SessionStorage;
@@ -41,7 +42,7 @@ public class AuthService
 
     public async Task<bool> RegisterAsync(string username, string password)
     {
-        string json = JsonSerializer.Serialize(new { username = username, password = password });
+        string json = JsonSerializer.Serialize(new { username = username, password = HashPassword(password) });
         StringContent query = new(json, Encoding.UTF8, "application/json");
 
         var response = await _client.PostAsync($"/user", query);
@@ -58,6 +59,14 @@ public class AuthService
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
         }
+    }
+
+    public string HashPassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Password cannot be empty.");
+
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(password)));
     }
 
     public async Task GenerateNewTokenAsync(string password)
@@ -79,7 +88,7 @@ public class AuthService
 
     private string GenerateToken(string username, string password)
     {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{HashPassword(password)}"));
     }
 
     public async Task<bool> IsLoggedAsync()

@@ -223,7 +223,6 @@
     protected override async Task OnInitializedAsync()
     {
         isLogged = await AuthService.IsLoggedAsync();
-        user = await AuthService.GetLoggedUserAsync();
 
         if (!isLogged)
         {
@@ -238,6 +237,7 @@
     private async Task LoadCategories()
     {
         await AuthService.RestoreLoginAsync(_client);
+        user = await AuthService.GetLoggedUserAsync();
 
         try
         {
@@ -424,7 +424,7 @@
 
         try
         {
-            var response = await _client.PutAsync($"/user/{user.Username}?password={Uri.EscapeDataString(newPassword)}", null);
+            var response = await _client.PutAsync($"/user/{user.Username}?password={AuthService.HashPassword(newPassword)}", null);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -434,11 +434,10 @@
             }
 
             userError = string.Empty;
-            userSuccess = "Hasło zostało zmienione!";
 
             await AuthService.GenerateNewTokenAsync(newPassword);
             await AuthService.RestoreLoginAsync(_client);
-
+            userSuccess = "Hasło zostało zmienione!";
             newPassword = string.Empty;
         }
         catch (Exception ex)
@@ -512,6 +511,7 @@
 
     private async Task LogoutAsync()
     {
+        _client.DefaultRequestHeaders.Authorization = null;
         await AuthService.LogoutAsync();
         NavigationManager.NavigateTo("/");
     }
