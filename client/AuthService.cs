@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Blazored.SessionStorage;
@@ -90,7 +91,11 @@ public class AuthService
     public async Task<UserModel> GetLoggedUserAsync()
     {
         var username = await _sessionStorage.GetItemAsync<string>(UsernameKey);
-        return new() { Username = username };
+        if (string.IsNullOrWhiteSpace(username))
+            throw new InvalidOperationException("No username stored in session.");
+
+        var user = await _client.GetFromJsonAsync<UserModel>($"/user/{username}");
+        return user ?? throw new InvalidOperationException("Failed to deserialize user.");
     }
 
     public async Task LogoutAsync()
