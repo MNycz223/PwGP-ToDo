@@ -86,6 +86,11 @@ public class Program
             return Results.Ok();
         });
 
+        app.MapGet("/user/{username}", (string username, SqliteDb db) =>
+        {
+            UserModel user = db.QueryFirst<UserModel>("SELECT Id, Username FROM users WHERE Username=@username", new { username = username });
+            return user;
+        }).RequireAuthorization();
         app.MapPut("/user/{username}", (string username, string password, SqliteDb db) =>
         {
             db.Execute("UPDATE users SET Password = @password WHERE Username=@username", new { password = password, username = username });
